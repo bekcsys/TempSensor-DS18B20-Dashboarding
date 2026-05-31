@@ -1,28 +1,19 @@
 #!/usr/bin/env bash
-# Stop publisher, plot latest CSV on the host (reliable on Pi), then tear down the stack.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT}"
 
-if [[ -f venv/bin/activate ]]; then
-  # shellcheck source=/dev/null
-  source venv/bin/activate
-fi
-
-echo "Stopping mqtt-publisher..."
-docker compose stop mqtt-publisher
-
-if compgen -G "exports/*.csv" > /dev/null; then
-  echo "Plotting latest CSV..."
-  python Visualize/sensorDataVisualizer.py \
-    --export-dir exports \
-    --presentation \
-    --output-auto \
-    || echo "WARNING: Host plot failed; check venv (pip install -r requirements.txt)." >&2
+if docker compose version >/dev/null 2>&1; then
+  COMPOSE=(docker compose)
 else
-  echo "No active CSV in exports/ to plot."
+  COMPOSE=(docker-compose)
 fi
 
-echo "Stopping remaining services..."
-docker compose down "$@"
+if [[ "${EUID}" -eq 0 ]]; then
+  "${COMPOSE[@]}" down "$@"
+elif command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+  "${COMPOSE[@]}" down "$@"
+else
+  sudo "${COMPOSE[@]}" down "$@"
+fi

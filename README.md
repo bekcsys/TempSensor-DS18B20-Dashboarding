@@ -1,162 +1,56 @@
-# SensWare : Sensor MQTT Logger and Vizualizer 
+Home
 
-Real-time **DS18B20** temperatures on a Raspberry Pi: **MQTT → InfluxDB → Grafana**, with every reading also saved to CSV.
+# MQTT Data Collector
 
-### Data flow : 
-```
-DS18B20  →  mqtt-publisher  →  MQTT  →  Telegraf  →  InfluxDB  →  Grafana
-                    └→  exports/YYYY-MM-DD_HHMMAM_TestUnit_serialNumber.csv
+**mqtt branch** — DS18B20 sensor reads, MQTT publish, CSV export. Use this branch to optimize data collection.
 
-```
-![Alt text](./docs/Plot5.png)
-
-
-
-![Alt text](./docs/Plot1.png)
-
-![Alt text](./docs/data.png)
-### Project structure
+No Grafana. No InfluxDB. No database. No web app.
 
 ```
-TempSensor/
-├── README.md
-├── LICENSE
-├── AUTHORS.md
-├── docker-compose.yml
-├── publisher/              # sensor read + MQTT + CSV
-├── stack/                  # Mosquitto, Telegraf, Grafana
-├── scripts/
-├── Visualize/              # Plotly PNG — see docs/CUSTOM_VISUALIZER.md
-├── docs/
-└── exports/                # active CSV + archive/ (gitignored)
+DS18B20 → mqtt-publisher → MQTT (Mosquitto)
+              └→ exports/*.csv
 ```
 
----
-
-# How to run
-
-From the project root: `cd ~/Projects/TempSensor`
-
-#### 1. Check 1-Wire
-
-```bash
-ls /sys/bus/w1/devices/28-*
-```
-
-If empty: enable 1-Wire in `sudo raspi-config`, reboot — see [docs/ADDING_SENSORS.md](docs/ADDING_SENSORS.md).
-
-#### 2. Configure sensors
-
-Edit `publisher/sensor/ds18b20_reader.py` — set `SENSOR_MAP`.
-
-#### 3. Secrets
+## Quick start
 
 ```bash
 cp .env.example .env
-nano .env
+make start              # TestUnit + serial number
+make check              # verify MQTT + CSV
+make stop
 ```
 
-Timezone wrong (UTC vs Chicago)? See [docs/TIMEZONE.md](docs/TIMEZONE.md).
+## Structure
 
-#### 4. Start the stack
-
-Prompts for **TestUnit** and **Serial Number**, then starts Docker (custom CSV name):
-
-```bash
-./scripts/compose-up.sh
+```
+├── docker-compose.yml    # Mosquitto + mqtt-publisher
+├── Makefile
+├── publisher/            # sensor read, MQTT, CSV
+├── stack/mosquitto/
+├── docker/               # publisher image
+├── scripts/
+├── exports/              # CSV output (gitignored)
+└── docs/
 ```
 
-Or with sudo directly:
+## Commands
 
-```bash
-sudo ./scripts/compose-up.sh
-```
+| Command | Purpose |
+|---------|---------|
+| `make start` | Start collector |
+| `make stop` | Stop stack |
+| `make logs` | Publisher logs |
+| `make check` | Test MQTT + CSV |
 
-#### 5. Open Grafana
+CSV columns: `timestamp`, `elapsed_time_in_Min`, `Timer_in_Min`, `sensor_id`, `sensor_label`, `temperature_c`, `temperature_f`
 
-http://localhost:3000 → login from `.env` → **Dashboards → TempSensor → TempSensor Live**
-
-```bash
-tail -f exports/*.csv
-sudo docker compose logs mqtt-publisher --tail 5
-```
-
-
-
----
-
-# Configuration (`.env`)
-
-| Variable | Purpose |
-|----------|---------|
-| `INFLUXDB_*` | InfluxDB — see [docs/INFLUXDB.md](docs/INFLUXDB.md) |
-| `GRAFANA_ADMIN_*` | Grafana login |
-| `MQTT_TOPIC` | Default `tempsensor/readings` |
-| `SAMPLE_INTERVAL` | Seconds between reads and CSV rows (default `60`, one per minute) |
-| `TEST_UNIT` | Test unit label in CSV/PNG filename (e.g. `Pro18.1`) |
-| `SERIAL_NUMBER` | Serial number in CSV/PNG filename (e.g. `73216-0098`) |
-| `CSV_DIR` | Directory for per-run CSV files (default `exports`) |
-| `VISUALIZE_OUTPUT_DIR` | PNG output — see [docs/CUSTOM_VISUALIZER.md](docs/CUSTOM_VISUALIZER.md) |
-| `TZ` | Default `America/Chicago` — see [docs/TIMEZONE.md](docs/TIMEZONE.md) |
-
----
-
-## Data 
-
-Each time the publisher starts, it creates a new file under `exports/`, for example
-`2026-05-18_936PM_Pro18.1_73216-0098.csv` (date, time, TestUnit, serial).
-
-On `docker compose up`, any CSV files in `exports/` are moved to `exports/archive/` before a new run file is created.
-
-Columns: `timestamp`, `elapsed_time_in_Min`, `Timer_in_Min`, `sensor_id`, `sensor_label`, `temperature_c`, `temperature_f` (`elapsed_time_in_Min`: 0, 1, 2, …; `Timer_in_Min` counts down from 90: 90, 89, 88, …)
-
-Presentation PNG from the latest CSV: [docs/CUSTOM_VISUALIZER.md](docs/CUSTOM_VISUALIZER.md).
-
----
-
-# Real-time visualization : Grafana 
-
-- Auto-built from `stack/grafana/dashboards/tempsensor-live.template.json`
-- Customize in the UI → **Save dashboard** (stored in `grafana_data` volume)
-- Reset layout: `docker compose down -v && docker compose up -d --build`
-
----
-
-# Automation Scripts
-
-| Script | Use |
-|--------|-----|
-| `scripts/compose-up.sh` | Prompt TestUnit/serial + `docker compose up` |
-| `scripts/install-docker.sh` | Install Docker on Pi (`sudo`) |
-| `scripts/check_pipeline.sh` | Test MQTT, CSV, Influx |
-| `scripts/clean_influx_data.sh` | Erase InfluxDB — see [docs/INFLUXDB.md](docs/INFLUXDB.md) |
-| `scripts/setup_timezone.sh` | Pi NTP + `America/Chicago` — see [docs/TIMEZONE.md](docs/TIMEZONE.md) |
-| `scripts/firstTimeSetup.sh` | Optional host Python venv |
-| `scripts/compose-down.sh` | Stop stack + plot — see [docs/CUSTOM_VISUALIZER.md](docs/CUSTOM_VISUALIZER.md) |
-| `scripts/plot_latest_csv.sh` | Refresh PNG — see [docs/CUSTOM_VISUALIZER.md](docs/CUSTOM_VISUALIZER.md) |
-
----
-
-# Documentation
+## Docs
 
 | Guide | Contents |
 |-------|----------|
-| [docs/ADDING_SENSORS.md](docs/ADDING_SENSORS.md) | Add DS18B20 sensors |
-| [docs/TIMEZONE.md](docs/TIMEZONE.md) | Chicago / CDT timezone and NTP |
-| [docs/INFLUXDB.md](docs/INFLUXDB.md) | InfluxDB config, queries, cleanup |
-| [docs/CUSTOM_VISUALIZER.md](docs/CUSTOM_VISUALIZER.md) | Plotly PNG charts from CSV |
-| [docs/AUTHORS.md](AUTHORS.md) | About the Author |
+| [docs/SENSORS.md](docs/SENSORS.md) | Add DS18B20 sensors |
+| [docs/CONFIG.md](docs/CONFIG.md) | `.env`, timezone |
 
----
+## License
 
-#### Do not commit
-
-`.env`, `venv/`, `exports/*.csv`, `TempSensor Live-*.json`
-
----
-
-## License and author
-
-Licensed under the [MIT License](LICENSE). You may use, copy, modify, and distribute this software for any purpose, including commercial use, provided the copyright notice and license text are included.
-
-Copyright (c) 2026 [Bek Kobro](https://bekcsys.com/about). See [AUTHORS.md](AUTHORS.md).
+[MIT License](LICENSE)

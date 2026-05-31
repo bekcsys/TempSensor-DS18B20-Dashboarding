@@ -1,44 +1,22 @@
-# Python
-venv/
-.venv/
-__pycache__/
-**/__pycache__/
-*.py[cod]
-.Python
-*.egg-info/
-
-# Secrets
 .env
 .env.*
 !.env.example
 
-# Generated at Grafana container start
-stack/grafana/provisioning/datasources/influxdb.yml
-
-# Data outputs
 exports/
 *.csv
-Visualize/output/
 
-
-# Optional Grafana UI exports
-TempSensor Live-*.json
-
-# Docker local persistence
 stack/mosquitto/data/
 stack/mosquitto/log/
-telegraf/telegraf.conf
 
-# Compose overrides
 docker-compose.override.yml
 
-# IDE / OS
 .idea/
 .vscode/
 .cursor/
 .DS_Store
 *.log
 
-# Legacy (other branch)
-ETL/
-Doc/
+# Other branches
+WebApp/
+SensorDataCollector/
+database/
