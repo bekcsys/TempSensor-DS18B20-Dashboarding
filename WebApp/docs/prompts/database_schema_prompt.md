@@ -1,3 +1,5 @@
+[TempSensor](../../../README.md) › [WebApp](../../README.md) › Prompts › Database Schema
+
 Create a separate Docker-based PostgreSQL + Django web application for long-term sauna test data storage and exploration.
 
 Important context:

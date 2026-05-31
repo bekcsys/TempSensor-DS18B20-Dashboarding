@@ -1,3 +1,5 @@
+[TempSensor](../../README.md) › [SensorDataCollector](../README.md) › Docker Image
+
 # Docker image — mqtt-collector
 
 Build context: **SensorDataCollector/** (this folder’s parent).

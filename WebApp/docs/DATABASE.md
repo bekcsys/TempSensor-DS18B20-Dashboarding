@@ -1,3 +1,5 @@
+[TempSensor](../../README.md) › [WebApp](../README.md) › Database
+
 # Database
 
 ## Services and ports
@@ -51,7 +53,7 @@ Reference schema: [sql/postgresql_schema.sql](../sql/postgresql_schema.sql)
 
 ## Backup and restore
 
-Hub image rebuilds keep the database. A **new machine** or `docker compose down -v` does not.
+Hub image rebuilds keep the database. A **new machine** or `docker compose down -v` does not keep the database.
 
 ```bash
 make db-backup

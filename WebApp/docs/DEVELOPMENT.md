@@ -1,3 +1,5 @@
+[TempSensor](../../README.md) › [WebApp](../README.md) › Development
+
 # Development (host)
 
 Docker (`make startwebapp`) installs dependencies inside the `django_web` image. Use a **separate host venv** only when running Django commands outside Docker.

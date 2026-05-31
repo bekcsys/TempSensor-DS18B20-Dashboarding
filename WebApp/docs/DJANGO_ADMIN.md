@@ -1,3 +1,5 @@
+[TempSensor](../../README.md) › [WebApp](../README.md) › Django Admin
+
 # Django admin
 
 Django admin is the staff UI for browsing and editing test data, import logs, and database records.
@@ -171,7 +173,7 @@ For charts and the public UI, use http://localhost:8000/ instead.
 
 | Problem | Fix |
 |---------|-----|
-| Forgot password (superuser `admin`) | `make resetadmin` after updating `.env` |
+| If you forgot the password (superuser `admin`) | `make resetadmin` after updating `.env` |
 | View user cannot log in | Enable **Staff status** on that user |
 | View user sees nothing | Add **Can view …** permissions for each model |
 | Cannot edit records | User needs **Can change …** permissions, not view-only; or use `grant_admin_edit_permissions` |

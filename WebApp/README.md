@@ -1,3 +1,5 @@
+[TempSensor](../README.md) › WebApp
+
 # Product Test Data
 
 PostgreSQL + Django for long-term test storage. Part of the [TempSensor](../README.md) repo — sensor collection lives in [SensorDataCollector](../SensorDataCollector/).
@@ -35,7 +37,7 @@ make startwebapp
 - Admin: http://localhost:8000/admin/
 - pgAdmin (optional): `cd pgadmin && make start` — [pgadmin/README.md](pgadmin/README.md)
 
-Django admin: http://localhost:8000/admin/ — see [docs/DJANGO_ADMIN.md](docs/DJANGO_ADMIN.md) (forgot password: `make resetadmin`)
+Django admin: http://localhost:8000/admin/ — see [docs/DJANGO_ADMIN.md](docs/DJANGO_ADMIN.md) (if you forgot your password: `make resetadmin`)
 
 ## Documentation
 

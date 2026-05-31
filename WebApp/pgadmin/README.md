@@ -1,3 +1,5 @@
+[TempSensor](../../README.md) › [WebApp](../README.md) › pgAdmin
+
 # pgAdmin for Product Test Data
 
 pgAdmin is a **separate optional stack** for browsing and querying PostgreSQL. It is **not** started with `make startwebapp` so the main WebApp builds faster.

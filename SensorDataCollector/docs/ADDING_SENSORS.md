@@ -1,3 +1,5 @@
+[TempSensor](../../README.md) › [SensorDataCollector](../README.md) › Adding Sensors
+
 # Adding more DS18B20 sensors
 
 This guide is for the **Grafana** branch on a **Raspberry Pi**. Each sensor gets its own 1-Wire ID, a label in software, and appears separately in MQTT, CSV, InfluxDB, and Grafana. InfluxDB setup and cleanup: [INFLUXDB.md](INFLUXDB.md).

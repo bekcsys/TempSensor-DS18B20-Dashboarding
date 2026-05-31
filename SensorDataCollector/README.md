@@ -1,3 +1,5 @@
+[TempSensor](../README.md) › SensorDataCollector
+
 # Sensor Data Collector
 
 Real-time **DS18B20** temperatures on a Raspberry Pi: **MQTT → InfluxDB → Grafana**, with every reading saved to CSV.

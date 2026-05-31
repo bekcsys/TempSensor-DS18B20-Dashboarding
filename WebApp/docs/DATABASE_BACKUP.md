@@ -1,3 +1,5 @@
+[TempSensor](../../README.md) › [WebApp](../README.md) › Database Backup
+
 # Database backup and restore
 
 PostgreSQL data **does not live inside the Django Docker image**. It is stored in a Docker volume named **`postgres_data`**.

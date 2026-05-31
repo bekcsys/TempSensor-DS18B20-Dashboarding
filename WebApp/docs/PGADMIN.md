@@ -1,3 +1,5 @@
+[TempSensor](../../README.md) › [WebApp](../README.md) › pgAdmin
+
 # pgAdmin (optional)
 
 pgAdmin runs in a **separate Docker stack** so the main WebApp starts faster.

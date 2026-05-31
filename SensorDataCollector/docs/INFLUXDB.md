@@ -1,3 +1,5 @@
+[TempSensor](../../README.md) › [SensorDataCollector](../README.md) › InfluxDB
+
 # InfluxDB
 
 InfluxDB stores live temperature readings for **Grafana**. Data flows:

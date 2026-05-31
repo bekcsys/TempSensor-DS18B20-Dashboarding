@@ -1,3 +1,5 @@
+[TempSensor](../../README.md) › [SensorDataCollector](../README.md) › Custom Visualizer
+
 # Custom visualizer (Plotly PNG)
 
 A **presentation PNG** chart from the latest CSV — separate from Grafana. Uses Plotly with shared 90‑minute time axis, **Sauna Temp (°C)** and **Sauna Temp (°F)** subplots, bold labels, and grid lines.
@@ -21,7 +23,7 @@ Grafana is unchanged; use this chart for slides and reports.
 
 ## Automatic PNG on stop
 
-When you stop the stack, the publisher **stops reading**, builds the PNG from the latest CSV, then exits. The CSV is **not** archived on down (only on the next `docker compose up`).
+When you stop the stack, the publisher **stops reading**, builds the PNG from the latest CSV, then exits. The CSV is **not** archived on shutdown (only on the next `docker compose up`).
 
 **Recommended on the Pi** (plot on the host — most reliable):
 

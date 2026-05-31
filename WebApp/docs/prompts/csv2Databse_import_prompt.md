@@ -1,3 +1,5 @@
+[TempSensor](../../../README.md) › [WebApp](../../README.md) › Prompts › CSV Import
+
 CSV migration/archive requirements:
 
 Create an automated CSV-to-PostgreSQL migration system.
@@ -39,7 +41,7 @@ data/archive/import_failed/
 
 5. Preserve original filenames.
 
-6. Add timestamp suffix during archive if duplicate filename already exists.
+6. Add a timestamp suffix during archiving if a duplicate filename already exists.
 
 Import log tracking:
 Create additional PostgreSQL table:

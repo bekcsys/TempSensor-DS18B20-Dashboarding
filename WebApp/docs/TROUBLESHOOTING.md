@@ -1,3 +1,5 @@
+[TempSensor](../../README.md) › [WebApp](../README.md) › Troubleshooting
+
 # WebApp troubleshooting
 
 ## ERR_CONNECTION_REFUSED on http://localhost:8000/
@@ -60,7 +62,7 @@ Login from `.env`:
 - Username: `DJANGO_SUPERUSER_USERNAME` (default `admin`)
 - Password: `DJANGO_SUPERUSER_PASSWORD`
 
-**Forgot password / locked out:** see [DJANGO_ADMIN.md](DJANGO_ADMIN.md) or run:
+**If you forgot your password or are locked out:** see [DJANGO_ADMIN.md](DJANGO_ADMIN.md) or run:
 
 ```bash
 cd WebApp
