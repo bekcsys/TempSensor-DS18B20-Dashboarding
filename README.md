@@ -1,162 +1,65 @@
-# SensWare : Sensor MQTT Logger and Vizualizer 
+Home
 
-Real-time **DS18B20** temperatures on a Raspberry Pi: **MQTT → InfluxDB → Grafana**, with every reading also saved to CSV.
+# Product Test Database
 
-### Data flow : 
-```
-DS18B20  →  mqtt-publisher  →  MQTT  →  Telegraf  →  InfluxDB  →  Grafana
-                    └→  exports/YYYY-MM-DD_HHMMAM_TestUnit_serialNumber.csv
+PostgreSQL-only branch for **schema design, upgrades, and exploration**. No web app. No MQTT.
 
-```
-![Alt text](./docs/Plot5.png)
+Use this branch to experiment with tables, indexes, and migrations before merging changes elsewhere.
 
-
-
-![Alt text](./docs/Plot1.png)
-
-![Alt text](./docs/data.png)
-### Project structure
-
-```
-TempSensor/
-├── README.md
-├── LICENSE
-├── AUTHORS.md
-├── docker-compose.yml
-├── publisher/              # sensor read + MQTT + CSV
-├── stack/                  # Mosquitto, Telegraf, Grafana
-├── scripts/
-├── Visualize/              # Plotly PNG — see docs/CUSTOM_VISUALIZER.md
-├── docs/
-└── exports/                # active CSV + archive/ (gitignored)
-```
-
----
-
-# How to run
-
-From the project root: `cd ~/Projects/TempSensor`
-
-#### 1. Check 1-Wire
+## Quick start
 
 ```bash
-ls /sys/bus/w1/devices/28-*
+cp .env.example .env          # set POSTGRES_PASSWORD
+make start                    # PostgreSQL on localhost:5433
+make init                     # apply sql/schema.sql
+make psql                     # interactive shell
 ```
 
-If empty: enable 1-Wire in `sudo raspi-config`, reboot — see [docs/ADDING_SENSORS.md](docs/ADDING_SENSORS.md).
+Optional GUI: `cd pgadmin && make start` → http://localhost:5050/
 
-#### 2. Configure sensors
+## Commands
 
-Edit `publisher/sensor/ds18b20_reader.py` — set `SENSOR_MAP`.
+| Command | Purpose |
+|---------|---------|
+| `make start` / `make stop` | Run / stop PostgreSQL |
+| `make psql` | Open psql in the container |
+| `make init` | Apply full schema from `sql/schema.sql` |
+| `make migrate` | Apply new files in `sql/migrations/` |
+| `make reset` | Wipe volume and re-init (destructive) |
+| `make db-backup` | Save dump to `data/backups/` |
+| `make db-restore FILE=...` | Restore from backup |
 
-#### 3. Secrets
+## Schema changes
 
-```bash
-cp .env.example .env
-nano .env
-```
+1. Edit or add SQL under `sql/migrations/` (e.g. `001_add_column.sql`)
+2. `make migrate`
 
-Timezone wrong (UTC vs Chicago)? See [docs/TIMEZONE.md](docs/TIMEZONE.md).
+For a clean slate: `make reset` then edit `sql/schema.sql` if the base design changed.
 
-#### 4. Start the stack
+## Tables
 
-Prompts for **TestUnit** and **Serial Number**, then starts Docker (custom CSV name):
+| Table | Purpose |
+|-------|---------|
+| `product_models` | Product model definitions |
+| `product_units` | Serial numbers / orders |
+| `test_runs` | Test sessions (TestID) |
+| `sensors` | DS18B20 sensor registry |
+| `sensor_readings` | Temperature time series |
+| `import_log` | Import history |
+| `powerbox_types` | Power box lookup |
+| `schema_migrations` | Applied migration files |
 
-```bash
-./scripts/compose-up.sh
-```
+Reference: [sql/schema.sql](sql/schema.sql)
 
-Or with sudo directly:
-
-```bash
-sudo ./scripts/compose-up.sh
-```
-
-#### 5. Open Grafana
-
-http://localhost:3000 → login from `.env` → **Dashboards → TempSensor → TempSensor Live**
-
-```bash
-tail -f exports/*.csv
-sudo docker compose logs mqtt-publisher --tail 5
-```
-
-
-
----
-
-# Configuration (`.env`)
-
-| Variable | Purpose |
-|----------|---------|
-| `INFLUXDB_*` | InfluxDB — see [docs/INFLUXDB.md](docs/INFLUXDB.md) |
-| `GRAFANA_ADMIN_*` | Grafana login |
-| `MQTT_TOPIC` | Default `tempsensor/readings` |
-| `SAMPLE_INTERVAL` | Seconds between reads and CSV rows (default `60`, one per minute) |
-| `TEST_UNIT` | Test unit label in CSV/PNG filename (e.g. `Pro18.1`) |
-| `SERIAL_NUMBER` | Serial number in CSV/PNG filename (e.g. `73216-0098`) |
-| `CSV_DIR` | Directory for per-run CSV files (default `exports`) |
-| `VISUALIZE_OUTPUT_DIR` | PNG output — see [docs/CUSTOM_VISUALIZER.md](docs/CUSTOM_VISUALIZER.md) |
-| `TZ` | Default `America/Chicago` — see [docs/TIMEZONE.md](docs/TIMEZONE.md) |
-
----
-
-## Data 
-
-Each time the publisher starts, it creates a new file under `exports/`, for example
-`2026-05-18_936PM_Pro18.1_73216-0098.csv` (date, time, TestUnit, serial).
-
-On `docker compose up`, any CSV files in `exports/` are moved to `exports/archive/` before a new run file is created.
-
-Columns: `timestamp`, `elapsed_time_in_Min`, `Timer_in_Min`, `sensor_id`, `sensor_label`, `temperature_c`, `temperature_f` (`elapsed_time_in_Min`: 0, 1, 2, …; `Timer_in_Min` counts down from 90: 90, 89, 88, …)
-
-Presentation PNG from the latest CSV: [docs/CUSTOM_VISUALIZER.md](docs/CUSTOM_VISUALIZER.md).
-
----
-
-# Real-time visualization : Grafana 
-
-- Auto-built from `stack/grafana/dashboards/tempsensor-live.template.json`
-- Customize in the UI → **Save dashboard** (stored in `grafana_data` volume)
-- Reset layout: `docker compose down -v && docker compose up -d --build`
-
----
-
-# Automation Scripts
-
-| Script | Use |
-|--------|-----|
-| `scripts/compose-up.sh` | Prompt TestUnit/serial + `docker compose up` |
-| `scripts/install-docker.sh` | Install Docker on Pi (`sudo`) |
-| `scripts/check_pipeline.sh` | Test MQTT, CSV, Influx |
-| `scripts/clean_influx_data.sh` | Erase InfluxDB — see [docs/INFLUXDB.md](docs/INFLUXDB.md) |
-| `scripts/setup_timezone.sh` | Pi NTP + `America/Chicago` — see [docs/TIMEZONE.md](docs/TIMEZONE.md) |
-| `scripts/firstTimeSetup.sh` | Optional host Python venv |
-| `scripts/compose-down.sh` | Stop stack + plot — see [docs/CUSTOM_VISUALIZER.md](docs/CUSTOM_VISUALIZER.md) |
-| `scripts/plot_latest_csv.sh` | Refresh PNG — see [docs/CUSTOM_VISUALIZER.md](docs/CUSTOM_VISUALIZER.md) |
-
----
-
-# Documentation
+## Docs
 
 | Guide | Contents |
 |-------|----------|
-| [docs/ADDING_SENSORS.md](docs/ADDING_SENSORS.md) | Add DS18B20 sensors |
-| [docs/TIMEZONE.md](docs/TIMEZONE.md) | Chicago / CDT timezone and NTP |
-| [docs/INFLUXDB.md](docs/INFLUXDB.md) | InfluxDB config, queries, cleanup |
-| [docs/CUSTOM_VISUALIZER.md](docs/CUSTOM_VISUALIZER.md) | Plotly PNG charts from CSV |
-| [docs/AUTHORS.md](AUTHORS.md) | About the Author |
+| [docs/DATABASE.md](docs/DATABASE.md) | Connect, example queries |
+| [docs/SCHEMA.md](docs/SCHEMA.md) | Tables and relationships |
+| [docs/BACKUP.md](docs/BACKUP.md) | Backup and restore |
+| [pgadmin/README.md](pgadmin/README.md) | Optional pgAdmin UI |
 
----
+## License
 
-#### Do not commit
-
-`.env`, `venv/`, `exports/*.csv`, `TempSensor Live-*.json`
-
----
-
-## License and author
-
-Licensed under the [MIT License](LICENSE). You may use, copy, modify, and distribute this software for any purpose, including commercial use, provided the copyright notice and license text are included.
-
-Copyright (c) 2026 [Bek Kobro](https://bekcsys.com/about). See [AUTHORS.md](AUTHORS.md).
+[MIT License](LICENSE)
