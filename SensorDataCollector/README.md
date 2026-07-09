@@ -21,9 +21,12 @@ DS18B20  →  mqtt-publisher  →  MQTT  →  Telegraf  →  InfluxDB  →  Graf
 cd SensorDataCollector
 cp .env.example .env          # first time — set secrets
 make startReadSensor          # prompts for TestUnit + serial number
+
+
+http://<IP>:3000   # Grafana dashbaord 
 ```
 
-- Grafana: http://localhost:3000
+- Grafana Password : 1234
 - Stop + plot PNG: `make stopReadSensor`
 - All targets: `make help`
 
